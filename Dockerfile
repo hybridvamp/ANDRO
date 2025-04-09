@@ -37,11 +37,11 @@ WORKDIR /app/ANDRO
 RUN npm install
 
 # Set default port based on the script
-EXPOSE 3456
+EXPOSE 8789
 
 # Create a health check for the container
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:3456 || exit 1
+    CMD curl -f http://localhost:8789 || exit 1
 
 # Setup entrypoint script to handle configuration and startup
 RUN echo '#!/bin/bash\n\
@@ -79,12 +79,12 @@ pm2 startup\n\
 \n\
 # Display access information\n\
 echo -e "\\033[1;35mAccess ANDRO at:\\033[0m"\n\
-echo -e "\\033[1;34mLocal URL: http://localhost:3456\\033[0m"\n\
-echo -e "\\033[1;34mContainer IP URL: http://$(hostname -i):3456\\033[0m"\n\
+echo -e "\\033[1;34mLocal URL: http://localhost:8789\\033[0m"\n\
+echo -e "\\033[1;34mContainer IP URL: http://$(hostname -i):8789\\033[0m"\n\
 echo -e "\\033[1;35mLogin credentials - Username: \\033[1;33m$ANDRO_USERNAME\\033[0m, Password: \\033[1;33m$ANDRO_PASSWORD\\033[0m"\n\
 \n\
 # Keep container running by watching logs\n\
-log "ANDRO is now running on port 3456"\n\
+log "ANDRO is now running on port 8789"\n\
 exec pm2 logs --no-daemon' > /app/ANDRO/entrypoint.sh \
     && chmod +x /app/ANDRO/entrypoint.sh
 
