@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     openjdk-8-jre \
     gnupg \
+    coreutils \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js 16.x
@@ -29,16 +30,11 @@ RUN wget https://github.com/AryanVBW/ANDRO/releases/download/v.1.0/ANDRO.zip \
     && unzip ANDRO.zip \
     && rm ANDRO.zip
 
-# IMPORTANT: Removed "npm install" as there's no package.json in the project
-# The installation steps indicate that PM2 is the only Node.js dependency needed
+# Change working directory to the ANDRO folder
+WORKDIR /app/ANDRO
 
 # Set default port for ANDRO
 EXPOSE 3456
-
-# Install md5sum if not already included
-RUN apt-get update && apt-get install -y \
-    coreutils \
-    && rm -rf /var/lib/apt/lists/*
 
 # Setup entrypoint script to handle configuration and startup
 RUN echo '#!/bin/bash\n\
@@ -54,12 +50,12 @@ if [ ! -z "$ANDRO_USERNAME" ] && [ ! -z "$ANDRO_PASSWORD" ]; then\n\
 fi\n\
 \n\
 # Start ANDRO with PM2\n\
-pm2 start index.js --no-daemon' > /app/entrypoint.sh \
-    && chmod +x /app/entrypoint.sh
+pm2 start index.js --no-daemon' > /app/ANDRO/entrypoint.sh \
+    && chmod +x /app/ANDRO/entrypoint.sh
 
 # Set environment variables with the requested credentials
 ENV ANDRO_USERNAME=hybrid
 ENV ANDRO_PASSWORD=hybrid
 
 # Run entrypoint script
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/app/ANDRO/entrypoint.sh"]
