@@ -25,8 +25,8 @@ RUN npm install pm2 -g
 # Create app directory
 WORKDIR /app
 
-# Download and extract ANDRO
-RUN wget https://github.com/AryanVBW/ANDRO/releases/download/v.1.0/ANDRO.zip \
+# Download and extract ANDRO (using v.2.0 from the script rather than v.1.0)
+RUN wget https://github.com/AryanVBW/ANDRO/releases/download/v.2.0/ANDRO.zip \
     && unzip ANDRO.zip \
     && rm ANDRO.zip
 
@@ -36,31 +36,55 @@ WORKDIR /app/ANDRO
 # Install dependencies
 RUN npm install
 
-# Set default port for ANDRO
+# Set default port based on the script
 EXPOSE 3456
+
+# Create a health check for the container
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3456 || exit 1
 
 # Setup entrypoint script to handle configuration and startup
 RUN echo '#!/bin/bash\n\
+\n\
+# Function to log actions\n\
+log() {\n\
+    echo -e "\\033[0;32m[*]\\033[0m $1"\n\
+}\n\
+\n\
+# Function to log errors\n\
+error() {\n\
+    echo -e "\\033[0;31m[!] ERROR: $1\\033[0m" >&2\n\
+}\n\
+\n\
 # Check if username/password environment variables are provided\n\
 if [ ! -z "$ANDRO_USERNAME" ] && [ ! -z "$ANDRO_PASSWORD" ]; then\n\
-  echo "Setting up custom credentials..."\n\
+  log "Setting up custom credentials..."\n\
   # Convert password to MD5 hash (ensure lowercase)\n\
   PASSWORD_HASH=$(echo -n "$ANDRO_PASSWORD" | md5sum | awk "{print \\$1}" | tr "[:upper:]" "[:lower:]")\n\
   # Update maindb.json with provided credentials\n\
   sed -i "s/\"username\":.*,/\"username\": \"$ANDRO_USERNAME\",/" maindb.json\n\
   sed -i "s/\"password\":.*,/\"password\": \"$PASSWORD_HASH\",/" maindb.json\n\
-  echo "Credentials updated."\n\
+  log "Credentials updated."\n\
 fi\n\
 \n\
 # Configure PM2 to keep the application running\n\
+log "Starting ANDRO application with PM2..."\n\
 pm2 start index.js\n\
+\n\
 # Save the PM2 process list and corresponding environments\n\
 pm2 save\n\
-# Configure PM2 to start on system boot\n\
+\n\
+# Configure PM2 for automatic startup\n\
 pm2 startup\n\
-# Keep container running\n\
-echo "ANDRO is now running on port 3456"\n\
-# Use PM2 in no-daemon mode as the main process to keep container running\n\
+\n\
+# Display access information\n\
+echo -e "\\033[1;35mAccess ANDRO at:\\033[0m"\n\
+echo -e "\\033[1;34mLocal URL: http://localhost:3456\\033[0m"\n\
+echo -e "\\033[1;34mContainer IP URL: http://$(hostname -i):3456\\033[0m"\n\
+echo -e "\\033[1;35mLogin credentials - Username: \\033[1;33m$ANDRO_USERNAME\\033[0m, Password: \\033[1;33m$ANDRO_PASSWORD\\033[0m"\n\
+\n\
+# Keep container running by watching logs\n\
+log "ANDRO is now running on port 3456"\n\
 exec pm2 logs --no-daemon' > /app/ANDRO/entrypoint.sh \
     && chmod +x /app/ANDRO/entrypoint.sh
 
