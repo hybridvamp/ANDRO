@@ -29,11 +29,16 @@ RUN wget https://github.com/AryanVBW/ANDRO/releases/download/v.1.0/ANDRO.zip \
     && unzip ANDRO.zip \
     && rm ANDRO.zip
 
-# Install dependencies
-RUN npm install
+# IMPORTANT: Removed "npm install" as there's no package.json in the project
+# The installation steps indicate that PM2 is the only Node.js dependency needed
 
 # Set default port for ANDRO
 EXPOSE 8080
+
+# Install md5sum if not already included
+RUN apt-get update && apt-get install -y \
+    coreutils \
+    && rm -rf /var/lib/apt/lists/*
 
 # Setup entrypoint script to handle configuration and startup
 RUN echo '#!/bin/bash\n\
@@ -52,7 +57,7 @@ fi\n\
 pm2 start index.js --no-daemon' > /app/entrypoint.sh \
     && chmod +x /app/entrypoint.sh
 
-# Set environment variables
+# Set environment variables with the requested credentials
 ENV ANDRO_USERNAME=hybrid
 ENV ANDRO_PASSWORD=hybrid
 
