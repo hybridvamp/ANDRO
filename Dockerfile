@@ -33,7 +33,7 @@ RUN wget https://github.com/AryanVBW/ANDRO/releases/download/v.1.0/ANDRO.zip \
 # The installation steps indicate that PM2 is the only Node.js dependency needed
 
 # Set default port for ANDRO
-EXPOSE 8080
+EXPOSE 3456
 
 # Install md5sum if not already included
 RUN apt-get update && apt-get install -y \
