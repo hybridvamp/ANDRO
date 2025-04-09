@@ -39,10 +39,6 @@ RUN npm install
 # Set default port based on the script
 EXPOSE 8789
 
-# Create a health check for the container
-# HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-#     CMD curl -f http://localhost:8789 || exit 1
-
 # Setup entrypoint script to handle configuration and startup
 RUN echo '#!/bin/bash\n\
 \n\
